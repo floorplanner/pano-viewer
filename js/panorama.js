@@ -15,7 +15,7 @@ let Panorama = (function() {
     auto_rotate_speed   : 3,                 // amount of px to move per second
     full_rotation_time  : null,              // overwrites auto_rotate_speed and instead allows you to set time in [s] for a cycle
     init                : null,              // custom callback executed right after init
-    pause_on_hover      : true,              // auto pause rotation on hover
+    pause_on_hover      : false,             // auto pause rotation on hover
 
     cubemap_folder      : '/img/panorama/cube/',                       // folder where aframe will try to locate images
     cubemap_name_map    : 'negx=l posx=r negy=d posy=u negz=b posz=f', // file name map which will be used to fetch images (inside "cubemap_folder")

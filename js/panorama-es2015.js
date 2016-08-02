@@ -23,11 +23,6 @@ let Panorama = (function() {
     cubemap_edge_length   : 5000               // size of cube
   };
 
-  // fetch type of input in a (most viable) consistent way
-  let type = subj => {
-    return Object.prototype.toString.call(subj).slice(8, -1).toLowerCase();
-  }
-
   return class Panorama {
     constructor(selector, settings = {}) {
       this.settings  = Object.assign({}, default_settings, settings);

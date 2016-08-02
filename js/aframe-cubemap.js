@@ -103,6 +103,7 @@
 	    // Create loader, set folder path, and load cubemap textures
 	    var loader = new THREE.CubeTextureLoader();
 	    loader.setPath(srcPath);
+			loader.setCrossOrigin('anonymous');
 
 	    var cubemap = loader.load(urls);
 	    cubemap.format = THREE.RGBFormat;

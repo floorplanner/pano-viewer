@@ -162,7 +162,3 @@ When setting to `false`, the `active_class` will be removed.
 var myPano = Panorama.new(/*selector*/ /*, opts = {}*/);
 myPano.set_active(true);
 ```
-
-## Some final notes
-
-* CORS issue with `origin` header not present in request headers (NEEDS FIX)

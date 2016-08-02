@@ -6,20 +6,21 @@ let Panorama = (function() {
   const VR_BUTTON           = '.a-enter-vr';
   const VR_UNSUPPORTED_ATTR = 'data-a-enter-vr-no-webvr';
 
-  // overwritable default settings
+  // default settings
   let default_settings = {
-    scene_class         : 'panorama-viewer', // default scene element
-    active_class        : 'active',          // added after loading panorama
-    auto_start          : true,              // start the pano without further interaction
-    auto_rotate         : false,             // turn auto rotate on by default
-    auto_rotate_speed   : 3,                 // amount of px to move per second
-    full_rotation_time  : null,              // overwrites auto_rotate_speed and instead allows you to set time in [s] for a cycle
-    init                : null,              // custom callback executed right after init
-    pause_on_hover      : false,             // auto pause rotation on hover
+    scene_class           : 'panorama-viewer', // default scene element
+    active_class          : 'active',          // added after loading panorama
+    auto_start            : true,              // start the pano without further interaction
+    auto_rotate           : false,             // turn auto rotate on by default
+    auto_rotate_speed     : 3,                 // amount of px to move per second
+    auto_rotate_direction : 'left',            // 'left' or 'right'
+    full_rotation_time    : null,              // overwrites auto_rotate_speed and instead allows you to set time in [s] for a cycle
+    init                  : null,              // custom callback executed right after init
+    pause_on_hover        : false,             // auto pause rotation on hover
 
-    cubemap_folder      : '/img/panorama/cube/',                       // folder where aframe will try to locate images
-    cubemap_name_map    : 'negx=l posx=r negy=d posy=u negz=b posz=f', // file name map which will be used to fetch images (inside "cubemap_folder")
-    cubemap_edge_length : 5000                                         // size of cube
+    cubemap_folder        : '/img/panorama/cube/',                       // folder where aframe will try to locate images
+    cubemap_name_map      : 'negx=l posx=r negy=d posy=u negz=b posz=f', // file name map which will be used to fetch images (inside "cubemap_folder")
+    cubemap_edge_length   : 5000                                         // size of cube
   };
 
   return class Panorama {
@@ -46,8 +47,8 @@ let Panorama = (function() {
 
     container_settings_overwrite() {
       let attr_map = {};
-      let attrs = Object.keys(this.container.attributes).forEach((attr) => {
-        name = this.container.attributes[attr].name.replace('-', '_');
+      Object.keys(this.container.attributes).forEach((attr) => {
+        name = this.container.attributes[attr].name.replace(/-/g, '_');
         if (this.settings.hasOwnProperty(name)) {
           attr_map[name] = this.container.attributes[attr].value;
         } else if (this.settings.hasOwnProperty(`cubemap_${name}`)) {
@@ -66,7 +67,7 @@ let Panorama = (function() {
         } else if (!isNaN(parseFloat(val)) && isFinite(val)) {
           val = parseFloat(val);
         }
-
+        
         this.settings[attr] = val;
       });
     }
@@ -174,7 +175,7 @@ let Panorama = (function() {
 
       this.camera.setAttribute('rotation', {
         x: x,
-        y: (y > 360 ? 0 : y + this.px_per_frame(ts)),
+        y: (Math.abs(y) > 360 ? 0 : y + this.px_per_frame(ts)),
         z: z
       });
 
@@ -185,13 +186,16 @@ let Panorama = (function() {
 
     px_per_frame(ts) {
       const FPS          = 1000 / (ts - this.prev_frame_ts);
+      let out            = 0;
       this.prev_frame_ts = ts;
 
       if (this.settings.full_rotation_time) {
-        return 360 / (FPS * this.settings.full_rotation_time);
+        out = 360 / (FPS * this.settings.full_rotation_time);
       } else {
-        return 1 / FPS * this.settings.auto_rotate_speed;
+        out = 1 / FPS * this.settings.auto_rotate_speed;
       }
+
+      return (this.settings.auto_rotate_direction == 'left' ? out : out *= -1)
     }
 
     listen(element, ...params) {

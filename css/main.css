@@ -12,6 +12,8 @@ body {
 .panorama {
   opacity: 0;
   transition: opacity 500ms ease-in;
+  max-width: 50vw;
+  max-height: 50vh;
 }
 
 .panorama--active {

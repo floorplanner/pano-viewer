@@ -119,6 +119,8 @@ In any case, you'll have to define a `Panorama` object first:
 var my_pano = Panorama.new( /*selector*/ /*, opts = {}*/ );
 ```
 
+*The `selector` argument can be any string representing a selector, using `document.querySelector` in the background it will simply use the first node and dump the rest.*
+
 ### Stop / Start / Toggle auto rotate
 
 **Start auto rotate**
@@ -163,4 +165,4 @@ myPano.set_active(true);
 
 ## Some final notes
 
-* Currently, when supplying a selector, it will only apply the Panorama to first one found in the DOM.
+* CORS issue with `origin` header not present in request headers (NEEDS FIX)

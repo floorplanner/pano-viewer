@@ -52,11 +52,11 @@ init                  : null,
 pause_on_hover        : false,
 
 // folder where aframe will try to locate images (can also be a web address e.g. https://cdn.domain.tld/image/path/)
-cubemap_folder        : '/img/panorama/cube',
+cubemap_folder        : '/img/',
 
 // file name map which will be used to fetch images (inside "cubemap_folder")
 // in this case, it would look for /img/panorama/cube/l.jpg instead of /img/panorama/cube/negx.jpg
-cubemap_name_map      : 'negx=l posx=r negy=d posy=u negz=b posz=f',
+cubemap_name_map      : null,
 
 // a certain scale for the panorama, this says it's 5000x5000x5000
 cubemap_edge_length   : 5000
@@ -164,5 +164,3 @@ myPano.set_active(true);
 ## Some final notes
 
 * Currently, when supplying a selector, it will only apply the Panorama to first one found in the DOM.
-* It is currently not possible to render a panorama without a name map defined since it is defined by default settings (needs FIX)
-* All the sides of the cube need to be defined when defining a `cubemap_name_map`.

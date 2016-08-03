@@ -14,7 +14,11 @@
   <body>
     <!-- attributes can also be set in HTML, use dashes instead of underscores e.g. auto_rotate: true becomes auto-rotate="true" -->
     <!-- cubemap specific parameters (defined by cubemap_*) are to be used without the cubemap prefix in HTML -->
+
     <!-- last but not least, if cubemap_folder_template is defined, the placeholders can also be used in HTML and will be replaced by their value -->
+    <!-- in the js/main.js file the cubemap_folder_template is defined globally which allows us to use :panorama_id within html as panorama-id -->
+    <!-- this removes the need to add a folder="/some/path" attribute on the html element and allows for much more consise properties to be used instead -->
+
     <div class="panorama" panorama-id="18755"></div>
   </body>
 </html>

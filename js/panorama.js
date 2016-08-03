@@ -21,7 +21,7 @@ var Panorama = function () {
     auto_rotate: false, // turn auto rotate on by default
     auto_rotate_speed: 3, // amount of px to move per second
     auto_rotate_direction: 'left', // control rotation diretion, either 'left' or 'right'
-    full_rotation_time: null, // overwrites auto_rotate_speed and instead allows you to set time in [s] for a full rotation
+    rotation_time: null, // overwrites auto_rotate_speed and instead allows you to set time in [s] for a full rotation
     init: null, // custom callback executed right after init
     pause_on_hover: false, // auto pause rotation on hover
 
@@ -263,8 +263,8 @@ var Panorama = function () {
         var out = 0;
         this.prev_frame_ts = ts;
 
-        if (this.settings.full_rotation_time) {
-          out = 360 / (FPS * this.settings.full_rotation_time);
+        if (this.settings.rotation_time) {
+          out = 360 / (FPS * this.settings.rotation_time);
         } else {
           out = 1 / FPS * this.settings.auto_rotate_speed;
         }

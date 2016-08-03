@@ -15,8 +15,7 @@ Append the following `<script>` tags to the `<head>` of the document.
 <script type="text/javascript" src="js/aframe.min.js"></script>
 <!-- Needs to be loaded second, allows us to use 6 cube images to render a panorama  -->
 <script type="text/javascript" src="js/aframe-cubemap.min.js"></script>
-<!-- Needs to be loaded after the other two have been loaded, depends on both -->
-<!-- An ES2015 version also exists which is more readable than the ES5 one -->
+<!-- Needs to be loaded after the other two have been loaded -->
 <script type="text/javascript" src="js/panorama.min.js"></script>
 ```
 
@@ -73,7 +72,7 @@ With these you can set:
 Global settings can be defined using:
 
 ```js
-Panorama.settings({ /*, setting: value*/ });
+Panorama.settings({/*, setting: value*/});
 ```
 
 Which will cause all subsequent instances of the `Panorama` class to honor these settings as defaults instead of the regular defaults.
@@ -84,10 +83,10 @@ These can be set in the constructor of each `Panorama` that you are going to def
 
 ```js
 // will auto rotate to the left (ccw)
-var pano_n1 = Panorama.new('.selector', { auto_rotate_direction: 'left' });
+var pano_n1 = Panorama.new('.selector', {auto_rotate_direction: 'left'});
 
 // will auto rotate to the right (cw)
-var pano_n2 = Panorama.new('.selector', { auto_rotate_direction: 'right' });
+var pano_n2 = Panorama.new('.selector', {auto_rotate_direction: 'right'});
 ```
 
 Regardless of defaults, these will be overridden by settings defined directly in the constructor.
@@ -128,8 +127,8 @@ However there are some additional things you can do with a panorama:
 In any case, you'll have to define a `Panorama` object first:
 
 ```js
-// var my_pano = new Panorama('.my-selector', /*, opts = {}*/); also works, Panorama.new returns an instance of a Panorama
-var my_pano = Panorama.new( /*selector*/ /*, opts = {}*/ );
+// var my_pano = new Panorama('.my-selector', /*, opts = {}*/); also works, Panorama.new returns an instance of a Panorama just like new Panorama otherwise would.
+var my_pano = Panorama.new(/*selector*/ /*, opts = {}*/);
 ```
 
 *The `selector` argument can be any string representing a selector, using `document.querySelector` in the background it will simply use the first node and dump the rest.*
@@ -162,7 +161,9 @@ Toggles `auto_rotate`
 my_pano.toggle_auto_rotate();
 ```
 
-**Change active state**
+### Changing active state
+
+All this does for the moment is toggle a class on the target.
 
 After initialization, the `active_class` will be added to the selector. This allows you to do things such as fade it in when it's loaded (as shown in the example).
 

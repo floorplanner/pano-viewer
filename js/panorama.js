@@ -7,11 +7,12 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var Panorama = function () {
   // default selectors for AFRAME elements
   var CUBEMAP = 'a-entity[cubemap]';
-  var CUBEMAP_ATTR_KEYS = ['folder', 'name_map', 'edge_length'];
   var CAMERA = '[data-aframe-default-camera]';
   var VR_BUTTON = '.a-enter-vr';
   var VR_UNSUPPORTED_ATTR = 'data-a-enter-vr-no-webvr';
 
+  // whitelist 'attributes' in cubemap_folder_template attribute
+  var whitelist = [];
   // default settings
   var default_settings = {
     scene_class: 'panorama-viewer', // default scene element
@@ -25,6 +26,7 @@ var Panorama = function () {
     pause_on_hover: false, // auto pause rotation on hover
 
     cubemap_folder: '/img/', // folder where aframe will try to locate images
+    cubemap_folder_template: null, // overwrites cubemap_folder, allows custom named attr to be replaced within a set of curly braces: {{attr_name}}
     cubemap_name_map: null, // file name map which will be used to fetch images (inside "cubemap_folder")
     cubemap_edge_length: 5000 // size of cube
   };
@@ -35,11 +37,10 @@ var Panorama = function () {
 
       _classCallCheck(this, Panorama);
 
-      this.settings = Object.assign({}, default_settings, settings);
       this.selector = selector;
       this.container = document.querySelector(selector);
 
-      this.container_settings_overwrite();
+      this.settings({}, default_settings, settings, this.inline_settings(this.container));
 
       if (this.settings.auto_start) {
         this.init();
@@ -47,9 +48,13 @@ var Panorama = function () {
     }
 
     _createClass(Panorama, [{
-      key: 'set_active',
-      value: function set_active(active) {
-        this.container.classList.toggle(this.settings.active_class, active);
+      key: 'settings',
+      value: function settings(target) {
+        for (var _len = arguments.length, objects = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          objects[_key - 1] = arguments[_key];
+        }
+
+        this.settings = Object.assign.apply(Object, [target].concat(objects));
       }
     }, {
       key: 'init',
@@ -57,57 +62,13 @@ var Panorama = function () {
         this.init_scene();
         this.set_active(true);
       }
-    }, {
-      key: 'container_settings_overwrite',
-      value: function container_settings_overwrite() {
-        var _this = this;
-
-        var attr_map = {};
-        Object.keys(this.container.attributes).forEach(function (attr) {
-          name = _this.container.attributes[attr].name.replace(/-/g, '_');
-          if (_this.settings.hasOwnProperty(name)) {
-            attr_map[name] = _this.container.attributes[attr].value;
-          } else if (_this.settings.hasOwnProperty('cubemap_' + name)) {
-            attr_map['cubemap_' + name] = _this.container.attributes[attr].value;
-          }
-        });
-
-        Object.keys(attr_map).forEach(function (attr) {
-          var val = attr_map[attr];
-
-          if (val === 'true') val = true;else if (val === 'false') val = false;else if (val === 'null') val = null;else if (val === '') {
-            val = true;
-          } else if (!isNaN(parseFloat(val)) && isFinite(val)) {
-            val = parseFloat(val);
-          }
-
-          _this.settings[attr] = val;
-        });
-      }
-    }, {
-      key: 'cubemap_attr',
-      value: function cubemap_attr() {
-        var _this2 = this;
-
-        var out = [];
-
-        CUBEMAP_ATTR_KEYS.forEach(function (attr) {
-          var cc_attr = attr.replace(/_[^_]/, function (m) {
-            return m.replace(/[_]+/, "").toUpperCase();
-          });
-
-          out.push(cc_attr + ': ' + _this2.settings['cubemap_' + attr] + ';');
-        });
-
-        return out.join(' ');
-      }
 
       // build the scene for the panorama and inject it into the dom
 
     }, {
       key: 'init_scene',
       value: function init_scene() {
-        var _this3 = this;
+        var _this = this;
 
         var scene = document.createElement('a-scene');
         var entity = document.createElement('a-entity');
@@ -129,7 +90,7 @@ var Panorama = function () {
           this.init_settings();
         } else {
           this.listen(this.scene, 'loaded', function () {
-            _this3.init_settings();
+            _this.init_settings();
           });
         }
       }
@@ -139,7 +100,7 @@ var Panorama = function () {
     }, {
       key: 'init_settings',
       value: function init_settings() {
-        var _this4 = this;
+        var _this2 = this;
 
         this.camera = this.container.querySelector(CAMERA);
         this.vr_button = this.container.querySelector(VR_BUTTON);
@@ -155,16 +116,83 @@ var Panorama = function () {
 
         if (this.settings.pause_on_hover) {
           this.listen(this.scene, 'mouseenter', function () {
-            return _this4.toggle_auto_rotate();
+            return _this2.toggle_auto_rotate();
           });
           this.listen(this.scene, 'mouseleave', function () {
-            return _this4.toggle_auto_rotate();
+            return _this2.toggle_auto_rotate();
           });
         }
 
         if (typeof this.settings.init === 'function') {
           this.settings.init.call(this, this.container, this.camera);
         }
+      }
+    }, {
+      key: 'inline_settings',
+      value: function inline_settings(container) {
+        var attr_map = {};
+        var allowed_keys = Object.keys(default_settings).concat(whitelist);
+
+        Object.keys(container.attributes).forEach(function (attr) {
+          name = container.attributes[attr].name.replace(/-/g, '_');
+          if (allowed_keys.includes(name)) {
+            attr_map[name] = container.attributes[attr].value;
+          } else if (allowed_keys.includes('cubemap_' + name)) {
+            attr_map['cubemap_' + name] = container.attributes[attr].value;
+          }
+        });
+
+        Object.keys(attr_map).forEach(function (attr) {
+          var val = attr_map[attr];
+
+          if (val === 'true') val = true;else if (val === 'false') val = false;else if (val === 'null') val = null;else if (val === '') {
+            val = true;
+          } else if (!isNaN(parseFloat(val)) && isFinite(val)) {
+            val = parseFloat(val);
+          }
+
+          attr_map[attr] = val;
+        });
+
+        return attr_map;
+      }
+    }, {
+      key: 'cubemap_attr',
+      value: function cubemap_attr() {
+        var _this3 = this;
+
+        var tpl_str = this.settings.cubemap_folder_template;
+        var missing = 0;
+        var out = [];
+
+        if (tpl_str) {
+          tpl_str = tpl_str.replace(/\:([^\/]+)/g, function (_, prop) {
+            if (_this3.settings.hasOwnProperty(prop)) {
+              return _this3.settings[prop];
+            }
+
+            missing += 1;
+          });
+        }
+
+        ['folder', 'name_map', 'edge_length'].forEach(function (attr) {
+          var cc_attr = attr.replace(/_[^_]/, function (m) {
+            return m.replace(/[_]+/, "").toUpperCase();
+          });
+
+          if (tpl_str && missing === 0 && attr === 'folder') {
+            out.push(cc_attr + ': ' + tpl_str + ';');
+          } else {
+            out.push(cc_attr + ': ' + _this3.settings['cubemap_' + attr] + ';');
+          }
+        });
+
+        return out.join(' ');
+      }
+    }, {
+      key: 'set_active',
+      value: function set_active(active) {
+        this.container.classList.toggle(this.settings.active_class, active);
       }
     }, {
       key: 'start_auto_rotate',
@@ -208,7 +236,7 @@ var Panorama = function () {
     }, {
       key: 'auto_rotate',
       value: function auto_rotate(ts) {
-        var _this5 = this;
+        var _this4 = this;
 
         var _camera$components$ro = this.camera.components.rotation.data;
         var x = _camera$components$ro.x;
@@ -224,7 +252,7 @@ var Panorama = function () {
 
         if (this.__auto_rotate_enabled) {
           requestAnimationFrame(function (ts) {
-            return _this5.auto_rotate(ts);
+            return _this4.auto_rotate(ts);
           });
         }
       }
@@ -246,8 +274,8 @@ var Panorama = function () {
     }, {
       key: 'listen',
       value: function listen(element) {
-        for (var _len = arguments.length, params = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-          params[_key - 1] = arguments[_key];
+        for (var _len2 = arguments.length, params = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+          params[_key2 - 1] = arguments[_key2];
         }
 
         element.addEventListener.apply(element, params);
@@ -256,12 +284,20 @@ var Panorama = function () {
       key: 'settings',
       value: function settings(_settings) {
         Object.assign(default_settings, _settings);
+
+        if (default_settings.cubemap_folder_template) {
+          default_settings.cubemap_folder_template.split('/').forEach(function (part) {
+            if (part && part[0] === ':') {
+              whitelist.push(part.substr(1));
+            }
+          });
+        }
       }
     }, {
       key: 'new',
       value: function _new() {
-        for (var _len2 = arguments.length, params = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-          params[_key2] = arguments[_key2];
+        for (var _len3 = arguments.length, params = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+          params[_key3] = arguments[_key3];
         }
 
         return new (Function.prototype.bind.apply(Panorama, [null].concat(params)))();

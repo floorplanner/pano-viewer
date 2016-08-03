@@ -6,15 +6,15 @@
     <link rel="stylesheet" href="css/main.css" type="text/css" />
     <!-- including required JS -->
     <script src="/js/aframe.min.js" type="text/javascript"></script>
-    <script src="/js/aframe-cubemap.js" type="text/javascript"></script>
+    <script src="/js/aframe-cubemap.min.js" type="text/javascript"></script>
     <!-- ES2015 (ES6) version of this file is also available when the time comes (and much more readable than the ES5 one) -->
-    <script src="/js/panorama-es2015.js" type="text/javascript"></script>
+    <script src="/js/panorama.min.js" type="text/javascript"></script>
     <script async src="/js/main.js" type="text/javascript"></script>
   </head>
   <body>
-    <!-- CORS testing attribute: folder="https://s3-eu-west-1.amazonaws.com/renders.roomstyler.com/18755/left/" -->
     <!-- attributes can also be set in HTML, use dashes instead of underscores e.g. auto_rotate: true becomes auto-rotate="true" -->
     <!-- cubemap specific parameters (defined by cubemap_*) are to be used without the cubemap prefix in HTML -->
-    <div class="panorama" auto-rotate-direction="right" folder="https://s3-eu-west-1.amazonaws.com/renders.roomstyler.com/18755/left/"></div>
+    <!-- last but not least, if cubemap_folder_template is defined, the placeholders can also be used in HTML and will be replaced by their value -->
+    <div class="panorama" panorama-id="18755"></div>
   </body>
 </html>

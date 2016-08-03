@@ -1,89 +1,50 @@
 let Panorama = (function() {
   // default selectors for AFRAME elements
   const CUBEMAP             = 'a-entity[cubemap]';
-  const CUBEMAP_ATTR_KEYS   = ['folder', 'name_map', 'edge_length'];
   const CAMERA              = '[data-aframe-default-camera]';
   const VR_BUTTON           = '.a-enter-vr';
   const VR_UNSUPPORTED_ATTR = 'data-a-enter-vr-no-webvr';
 
+  // whitelist 'attributes' in cubemap_folder_template attribute
+  let whitelist        = [];
   // default settings
   let default_settings = {
-    scene_class           : 'panorama-viewer', // default scene element
-    active_class          : 'active',          // added after loading panorama
-    auto_start            : true,              // start the pano without further interaction
-    auto_rotate           : false,             // turn auto rotate on by default
-    auto_rotate_speed     : 3,                 // amount of px to move per second
-    auto_rotate_direction : 'left',            // control rotation diretion, either 'left' or 'right'
-    full_rotation_time    : null,              // overwrites auto_rotate_speed and instead allows you to set time in [s] for a full rotation
-    init                  : null,              // custom callback executed right after init
-    pause_on_hover        : false,             // auto pause rotation on hover
+    scene_class             : 'panorama-viewer', // default scene element
+    active_class            : 'active',          // added after loading panorama
+    auto_start              : true,              // start the pano without further interaction
+    auto_rotate             : false,             // turn auto rotate on by default
+    auto_rotate_speed       : 3,                 // amount of px to move per second
+    auto_rotate_direction   : 'left',            // control rotation diretion, either 'left' or 'right'
+    full_rotation_time      : null,              // overwrites auto_rotate_speed and instead allows you to set time in [s] for a full rotation
+    init                    : null,              // custom callback executed right after init
+    pause_on_hover          : false,             // auto pause rotation on hover
 
-    cubemap_folder        : '/img/',           // folder where aframe will try to locate images
-    cubemap_name_map      : null,              // file name map which will be used to fetch images (inside "cubemap_folder")
-    cubemap_edge_length   : 5000               // size of cube
+    cubemap_folder          : '/img/',           // folder where aframe will try to locate images
+    cubemap_folder_template : null,              // overwrites cubemap_folder, allows custom named attr to be replaced within a set of curly braces: {{attr_name}}
+    cubemap_name_map        : null,              // file name map which will be used to fetch images (inside "cubemap_folder")
+    cubemap_edge_length     : 5000               // size of cube
   };
 
   return class Panorama {
     constructor(selector, settings = {}) {
-      this.settings  = Object.assign({}, default_settings, settings);
-      this.selector  = selector;
-      this.container = document.querySelector(selector);
+      this.selector    = selector;
+      this.container   = document.querySelector(selector);
 
-      this.container_settings_overwrite();
+      this.settings({}, default_settings, settings,
+                        this.inline_settings(this.container));
 
       if (this.settings.auto_start) {
         this.init();
       }
     }
 
-    set_active(active) {
-      this.container.classList.toggle(this.settings.active_class, active);
+    settings(target, ...objects) {
+      this.settings = Object.assign(target, ...objects);
     }
 
     init() {
       this.init_scene();
       this.set_active(true);
-    }
-
-    container_settings_overwrite() {
-      let attr_map = {};
-      Object.keys(this.container.attributes).forEach((attr) => {
-        name = this.container.attributes[attr].name.replace(/-/g, '_');
-        if (this.settings.hasOwnProperty(name)) {
-          attr_map[name] = this.container.attributes[attr].value;
-        } else if (this.settings.hasOwnProperty(`cubemap_${name}`)) {
-          attr_map[`cubemap_${name}`] = this.container.attributes[attr].value;
-        }
-      });
-
-      Object.keys(attr_map).forEach((attr) => {
-        let val = attr_map[attr];
-
-        if (val === 'true') val = true;
-        else if (val === 'false') val = false;
-        else if (val === 'null') val = null;
-        else if (val === '') {
-          val = true;
-        } else if (!isNaN(parseFloat(val)) && isFinite(val)) {
-          val = parseFloat(val);
-        }
-
-        this.settings[attr] = val;
-      });
-    }
-
-    cubemap_attr() {
-      let out = [];
-
-      CUBEMAP_ATTR_KEYS.forEach((attr) => {
-        let cc_attr = attr.replace(/_[^_]/, (m) => {
-          return m.replace(/[_]+/, "").toUpperCase();
-        });
-
-        out.push(`${cc_attr}: ${this.settings[`cubemap_${attr}`]};`);
-      });
-
-      return out.join(' ');
     }
 
     // build the scene for the panorama and inject it into the dom
@@ -133,6 +94,71 @@ let Panorama = (function() {
       if (typeof this.settings.init === 'function') {
         this.settings.init.call(this, this.container, this.camera);
       }
+    }
+
+    inline_settings(container) {
+      let attr_map     = {};
+      let allowed_keys = Object.keys(default_settings).concat(whitelist);
+
+      Object.keys(container.attributes).forEach((attr) => {
+        name = container.attributes[attr].name.replace(/-/g, '_');
+        if (allowed_keys.includes(name)) {
+          attr_map[name] = container.attributes[attr].value;
+        } else if (allowed_keys.includes(`cubemap_${name}`)) {
+          attr_map[`cubemap_${name}`] = container.attributes[attr].value;
+        }
+      });
+
+      Object.keys(attr_map).forEach((attr) => {
+        let val = attr_map[attr];
+
+        if (val === 'true') val = true;
+        else if (val === 'false') val = false;
+        else if (val === 'null') val = null;
+        else if (val === '') {
+          val = true;
+        } else if (!isNaN(parseFloat(val)) && isFinite(val)) {
+          val = parseFloat(val);
+        }
+
+        attr_map[attr] = val;
+      });
+
+      return attr_map;
+    }
+
+    cubemap_attr() {
+      let tpl_str = this.settings.cubemap_folder_template;
+      let missing = 0;
+      let out     = [];
+
+      if (tpl_str) {
+        tpl_str = tpl_str.replace(/\:([^\/]+)/g, (_, prop) => {
+          if (this.settings.hasOwnProperty(prop)) {
+            return this.settings[prop];
+          }
+
+          missing += 1;
+        });
+      }
+
+      ['folder', 'name_map', 'edge_length'].forEach((attr) => {
+        let cc_attr = attr.replace(/_[^_]/, (m) => {
+          return m.replace(/[_]+/, "").toUpperCase();
+        });
+
+        if (tpl_str && missing === 0 && attr === 'folder') {
+          out.push(`${cc_attr}: ${tpl_str};`);
+        } else {
+          out.push(`${cc_attr}: ${this.settings[`cubemap_${attr}`]};`);
+        }
+      });
+
+      return out.join(' ');
+    }
+
+    set_active(active) {
+      this.container.classList.toggle(this.settings.active_class, active);
     }
 
     start_auto_rotate() {
@@ -194,7 +220,7 @@ let Panorama = (function() {
         out = 1 / FPS * this.settings.auto_rotate_speed;
       }
 
-      return (this.settings.auto_rotate_direction == 'left' ? out : out *= -1)
+      return (this.settings.auto_rotate_direction == 'left' ? out : out *= -1);
     }
 
     listen(element, ...params) {
@@ -203,6 +229,14 @@ let Panorama = (function() {
 
     static settings(settings) {
       Object.assign(default_settings, settings);
+
+      if (default_settings.cubemap_folder_template) {
+        default_settings.cubemap_folder_template.split('/').forEach((part) => {
+          if (part && part[0] === ':') {
+            whitelist.push(part.substr(1));
+          }
+        });
+      }
     }
 
     static new(...params) {

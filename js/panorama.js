@@ -9,6 +9,7 @@ var Panorama = function () {
   var CUBEMAP = 'a-entity[cubemap]';
   var CAMERA = '[data-aframe-default-camera]';
   var VR_BUTTON = '.a-enter-vr';
+  var CANVAS = 'canvas';
   var VR_UNSUPPORTED_ATTR = 'data-a-enter-vr-no-webvr';
 
   // whitelist 'attributes' in cubemap_folder_template attribute
@@ -28,12 +29,13 @@ var Panorama = function () {
     cubemap_folder: '/img/', // folder where aframe will try to locate images
     cubemap_folder_template: null, // overwrites cubemap_folder, allows custom named attr to be replaced within a set of curly braces: {{attr_name}}
     cubemap_name_map: null, // file name map which will be used to fetch images (inside "cubemap_folder")
-    cubemap_edge_length: 5000 // size of cube
+    cubemap_edge_length: 5000, // size of cube
+    fullscreen: false // use canvas instead of iframe for embedding
   };
 
   return function () {
     function Panorama(selector) {
-      var settings = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+      var settings = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
       _classCallCheck(this, Panorama);
 
@@ -76,7 +78,6 @@ var Panorama = function () {
 
         scene.classList.add(scene_class);
         entity.classList.add(this.settings.scene_class + '-cube');
-
         entity.setAttribute('cubemap', this.cubemap_attr());
 
         scene.appendChild(entity);
@@ -105,6 +106,11 @@ var Panorama = function () {
         this.camera = this.container.querySelector(CAMERA);
         this.vr_button = this.container.querySelector(VR_BUTTON);
         this.cubemap = this.container.querySelector(CUBEMAP);
+        this.canvas = this.container.querySelector(CANVAS);
+
+        if (this.settings.fullscreen === false) {
+          this.scene.setAttribute('embedded', true);
+        }
 
         if (this.vr_button.hasAttribute(VR_UNSUPPORTED_ATTR)) {
           this.vr_button.parentNode.removeChild(this.vr_button);
@@ -238,10 +244,13 @@ var Panorama = function () {
       value: function auto_rotate(ts) {
         var _this4 = this;
 
-        var _camera$components$ro = this.camera.components.rotation.data;
-        var x = _camera$components$ro.x;
-        var y = _camera$components$ro.y;
-        var z = _camera$components$ro.z;
+        var d = this.camera.components.rotation.data;
+
+        var _ref = d ? d : { x: 0, y: 0, z: 0 };
+
+        var x = _ref.x;
+        var y = _ref.y;
+        var z = _ref.z;
 
 
         this.camera.setAttribute('rotation', {

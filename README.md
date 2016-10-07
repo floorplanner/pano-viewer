@@ -62,7 +62,10 @@ cubemap_folder_template : null,
 cubemap_name_map        : null,
 
 // a certain scale for the panorama, this says it's 5000x5000x5000
-cubemap_edge_length     : 5000
+cubemap_edge_length     : 5000,
+
+// render panorama fullscreen
+fullscreen              : false
 ```
 
 With these you can set:

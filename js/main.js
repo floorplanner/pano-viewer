@@ -2,7 +2,7 @@
 Panorama.settings({
   active_class: 'panorama--active',
   auto_rotate: true,
-  pause_on_hover: false,
+  pause_on_hover: true,
   full_rotation_time: 180,
   cubemap_edge_length: 200,
   cubemap_folder_template: `https://s3-eu-west-1.amazonaws.com/renders.roomstyler.com/:panorama_id/left/`,

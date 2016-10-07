@@ -3,6 +3,7 @@ let Panorama = (function() {
   const CUBEMAP             = 'a-entity[cubemap]';
   const CAMERA              = '[data-aframe-default-camera]';
   const VR_BUTTON           = '.a-enter-vr';
+  const CANVAS              = 'canvas';
   const VR_UNSUPPORTED_ATTR = 'data-a-enter-vr-no-webvr';
 
   // whitelist 'attributes' in cubemap_folder_template attribute
@@ -22,7 +23,8 @@ let Panorama = (function() {
     cubemap_folder          : '/img/',           // folder where aframe will try to locate images
     cubemap_folder_template : null,              // overwrites cubemap_folder, allows custom named attr to be replaced within a set of curly braces: {{attr_name}}
     cubemap_name_map        : null,              // file name map which will be used to fetch images (inside "cubemap_folder")
-    cubemap_edge_length     : 5000               // size of cube
+    cubemap_edge_length     : 5000,              // size of cube
+    fullscreen              : false              // use canvas instead of iframe for embedding
   };
 
   return class Panorama {
@@ -55,7 +57,6 @@ let Panorama = (function() {
 
       scene.classList.add(scene_class);
       entity.classList.add(this.settings.scene_class + '-cube');
-
       entity.setAttribute('cubemap', this.cubemap_attr());
 
       scene.appendChild(entity);
@@ -77,6 +78,11 @@ let Panorama = (function() {
       this.camera    = this.container.querySelector(CAMERA);
       this.vr_button = this.container.querySelector(VR_BUTTON);
       this.cubemap   = this.container.querySelector(CUBEMAP);
+      this.canvas    = this.container.querySelector(CANVAS);
+
+      if (this.settings.fullscreen === false) {
+        this.scene.setAttribute('embedded', true);
+      }
 
       if (this.vr_button.hasAttribute(VR_UNSUPPORTED_ATTR)) {
         this.vr_button.parentNode.removeChild(this.vr_button);
@@ -196,7 +202,8 @@ let Panorama = (function() {
     }
 
     auto_rotate(ts) {
-      let {x, y, z} = this.camera.components.rotation.data;
+      let d = this.camera.components.rotation.data;
+      let {x, y, z} = d ? d : {x: 0, y: 0, z: 0};
 
       this.camera.setAttribute('rotation', {
         x: x,

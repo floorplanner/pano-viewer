@@ -8,7 +8,9 @@
 
 ## Installation
 
-Append the following `<script>` tags to the `<head>` of the document.
+### JS
+
+Append the following `<script>` tags to the `<head>` of the document. This will include all the needed scripts to run the viewer.
 
 ```html
 <!-- Needs to be loaded first, main library used for rendering the panorama -->
@@ -18,6 +20,26 @@ Append the following `<script>` tags to the `<head>` of the document.
 <!-- Needs to be loaded after the other two have been loaded -->
 <script type="text/javascript" src="js/panorama.min.js"></script>
 ```
+
+### CSS
+
+In the example the viewer has some styling. It is centered and has a relative size, this is only for use in the example although you are free to use it within your project ofcourse!. The complete styling for the viewer looks like this:
+
+```css
+.panorama {
+  opacity: 0;
+  transition: opacity 500ms ease-in;
+  width: 50%;
+  height: 50%;
+  box-shadow: 0px 0px 3px 2px #aaa;
+}
+
+.panorama--active {
+  opacity: 1;
+}
+```
+
+## Configuration
 
 There are configurable options that you can pass to the constructor (defaults shown):
 

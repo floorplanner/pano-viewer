@@ -1,6 +1,5 @@
 let Panorama = (function() {
   // default selectors for AFRAME elements
-  const CUBEMAP             = 'a-entity[cubemap]';
   const CAMERA              = '[data-aframe-default-camera]';
   const VR_BUTTON           = '.a-enter-vr';
   const CANVAS              = 'canvas';
@@ -19,18 +18,20 @@ let Panorama = (function() {
     rotation_time           : null,              // overwrites auto_rotate_speed and instead allows you to set time in [s] for a full rotation
     init                    : null,              // custom callback executed right after init
     pause_on_hover          : false,             // auto pause rotation on hover
+    fullscreen              : false,             // use canvas instead of iframe for embedding
+    mode                    : 'cube',            // switch between using a 6 image cube or a single equirect, modes: cube, sphere
 
+    // only used when mode is cube
     cubemap_folder          : '/img/',           // folder where aframe will try to locate images
     cubemap_folder_template : null,              // overwrites cubemap_folder, allows custom named attr to be replaced within a set of curly braces: {{attr_name}}
     cubemap_name_map        : null,              // file name map which will be used to fetch images (inside "cubemap_folder")
     cubemap_edge_length     : 5000,              // size of cube
-    fullscreen              : false              // use canvas instead of iframe for embedding
   };
 
   return class Panorama {
     constructor(selector, settings = {}) {
-      this.selector    = selector;
-      this.container   = document.querySelector(selector);
+      this.selector  = selector;
+      this.container = document.querySelector(selector);
 
       this.settings({}, default_settings, settings,
                         this.inline_settings(this.container));
@@ -51,15 +52,38 @@ let Panorama = (function() {
 
     // build the scene for the panorama and inject it into the dom
     init_scene() {
-      let scene  = document.createElement('a-scene');
-      let entity = document.createElement('a-entity');
+      let scene       = document.createElement('a-scene');
       let scene_class = this.settings.scene_class + '-scene';
 
       scene.classList.add(scene_class);
-      entity.classList.add(this.settings.scene_class + '-cube');
-      entity.setAttribute('cubemap', this.cubemap_attr());
 
-      scene.appendChild(entity);
+      if (this.settings.mode === 'cube') {
+        let entity = document.createElement('a-entity');
+        entity.setAttribute('cubemap', this.cubemap_attr());
+        entity.classList.add(this.settings.scene_class + '-cube');
+        scene.appendChild(entity);
+      } else {
+        let assets = document.createElement('a-assets');
+        let views  = ['left', 'right'].map((eye) => {
+          let asset = document.createElement('img');
+          let view  = document.createElement('a-sky');
+          let id    = `asset-${eye}`;
+
+          view.setAttribute('src', `#${id}`);
+          view.setAttribute('stereo', `eye:${eye}`);
+
+          asset.setAttribute('id', id);
+          asset.setAttribute('src', `/img/equirect-${eye}.jpg`);
+
+          assets.appendChild(asset);
+
+          return view;
+        });
+
+        scene.appendChild(assets);
+        views.forEach((view) => { scene.appendChild(view); });
+      }
+
       this.container.appendChild(scene);
 
       // scene is defined here because we either need to listen to an event or
@@ -77,11 +101,15 @@ let Panorama = (function() {
     init_settings() {
       this.camera    = this.container.querySelector(CAMERA);
       this.vr_button = this.container.querySelector(VR_BUTTON);
-      this.cubemap   = this.container.querySelector(CUBEMAP);
+      this.cubemap   = this.container.querySelector('a-entity[cubemap]');
       this.canvas    = this.container.querySelector(CANVAS);
 
       if (this.settings.fullscreen === false) {
         this.scene.setAttribute('embedded', true);
+      }
+
+      if (this.settings.mode === 'sphere') {
+        this.camera.setAttribute('stereocam', 'eye:right');
       }
 
       if (this.vr_button.hasAttribute(VR_UNSUPPORTED_ATTR)) {

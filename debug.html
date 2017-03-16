@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="/js/aframe.min.js" type="text/javascript"></script>
+    <script src="/js/aframe-cubemap.min.js" type="text/javascript"></script>
+    <script src="/js/aframe-stereo.min.js" type="text/javascript"></script>
+  </head>
+  <body>
+    <a-scene class="fullscreen panorama-viewer-scene">
+      <a-assets>
+        <img id="asset-left" src="/img/equirect-left.jpg">
+        <img id="asset-right" src="/img/equirect-right.jpg">
+      </a-assets>
+
+      <a-sky src="#asset-left" material="" stereo="" geometry="" scale="" position="" rotation="" visible=""></a-sky>
+      <a-sky src="#asset-right" material="" stereo="" geometry="" scale="" position="" rotation="" visible=""></a-sky>
+    </a-scene>
+  </body>
+</html>
